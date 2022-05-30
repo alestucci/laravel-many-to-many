@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Post;
 use App\User;
 use App\Category;
+use App\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
@@ -24,7 +25,10 @@ class PostController extends Controller
         $posts = Post::where('id', '>', 0);
 
         if ($request->s) {
-            $posts->where('title', 'LIKE', "%$request->s%");
+            $posts->where(function($query) use ($request){
+                $query->where('title', 'LIKE', "%$request->s%")
+                    ->orWhere('content', 'LIKE', "%$request->s%");
+            });
         }
 
         if ($request->category) {
@@ -38,6 +42,7 @@ class PostController extends Controller
         $posts = $posts->paginate(20);
 
         $categories = Category::all();
+        
         $users = User::all();
 
 
@@ -55,8 +60,12 @@ class PostController extends Controller
      */
     public function create()
     {
-        $categories = \App\Category::all();
-        return view('admin.posts.create', compact('categories'));
+        $categories = Category::all();
+        $tags = Tag::all();
+        return view('admin.posts.create', [
+            'categories' => $categories,
+            'tags' => $tags
+        ]);
     }
 
     /**
@@ -68,18 +77,34 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            // 'user_is' => 'required|exists:App\User,id',
+            // 'user_id' => 'required|exists:App\User,id',
             'title' => 'required|max:100',
             'slug' => 'required|unique:posts|max:100',
             'category_id' => 'required|exists:App\Category,id',
-            'content' => 'required'
+            'content' => 'required',
+            'tags' => 'exists:App\Tag,id'
         ]);
 
         $formData = $request->all() + [
             'user_id' => Auth::id(),
         ];
 
+        preg_match_all('/#([0-9a-zA-Z]*)/', $formData['content'], $tagsFromContent);
+
+        $tagIds = [];
+        foreach ($tagsFromContent[1] as $tag) {
+            $newTag = Tag::create([
+                'name' => $tag,
+                'slug' => $tag
+            ]);
+
+            $tagIds[] = $newTag->id;
+        }
+
+        $formData['tags'] = $tagIds;
+
         $newPost = Post::create($formData);
+        $newPost->tags()->attach($formData['tags']);
 
         return redirect()->route('admin.posts.show', $newPost->slug);
     }
@@ -104,10 +129,12 @@ class PostController extends Controller
     public function edit(Post $post)
     {
         if (Auth::id() !== $post->user_id) abort(403);
-        $categories = \App\Category::all();
+        $categories = Category::all();
+        $tags = Tag::all();
         return view('admin.posts.edit', [
             'post' => $post,
             'categories' => $categories,
+            'tags' => $tags
         ]);
     }
 
@@ -130,10 +157,17 @@ class PostController extends Controller
                 'max:100',
             ],
             'category_id' => 'required|exists:App\Category,id',
-            'content' => 'required'
+            'content' => 'required',
+            'tags' => 'exists:App\Tag,id'
         ]);
 
-        $post->update($request->all());
+        $formData = $request->all();
+
+        $post->update($formData);
+        //$formData['tags'] dà errore se non ci sono tag
+        if ($formData['tags']) {
+            $post->tags()->sync($formData['tags']);
+        }
 
         return redirect()->route('admin.posts.show', $post->slug);
     }
@@ -146,6 +180,10 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
+        if (Auth::id() !== $post->user_id) abort(403);
+
+        $post->tags()->detach();
+        //$post->tags()->sync([]); Alternativa al detach
         $post->delete();
         return redirect()->back();
     }

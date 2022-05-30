@@ -13,7 +13,8 @@
                 {{-- TITOLO --}}
                 <div class="mb-3">
                     <label for="title" class="form-label">{{__('Title')}}</label>
-                    <input type="text" class="form-control" id="title" placeholder="{{__('Title')}}" name="title" value="{{ old('title')? old('title') : $post->title }}">
+                    <input type="text" class="form-control" id="title" placeholder="{{__('Title')}}" name="title"
+                        value="{{ old('title')? old('title') : $post->title }}">
                 </div>
 
                 @error ('title')
@@ -23,7 +24,8 @@
                 {{-- SLUG --}}
                 <div class="mb-3">
                     <label for="slug" class="form-label">{{__('Slug')}}</label>
-                    <input type="text" class="form-control" id="slug" placeholder="{{__('Slug')}}" name="slug" value="{{ old('slug')? old('slug') : $post->slug }}">
+                    <input type="text" class="form-control" id="slug" placeholder="{{__('Slug')}}" name="slug"
+                        value="{{ old('slug')? old('slug') : $post->slug }}">
                     <input type="button" value="Genera Slug" id="slugger-btn">
                 </div>
 
@@ -35,7 +37,8 @@
                 <select name="category_id" id="category_id" class="form-select mb-3">
                     <option selected>Seleziona una categoria</option>
                     @foreach ($categories as $category)
-                    <option value="{{ $category->id }}" {{ $category->id == old('category', $post->category_id) ? 'selected' : ''}}>
+                    <option value="{{ $category->id }}" {{ $category->id == old('category', $post->category_id) ?
+                        'selected' : ''}}>
                         {{ $category->name }}
                     </option>
                     @endforeach
@@ -45,10 +48,26 @@
                 <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
 
+                {{-- TAGS --}}
+                <fieldset>
+                    <legend>Tags</legend>
+                    @foreach ($tags as $tag)
+                    <input type="checkbox" name="tags[]" id="tag-{{ $tag->id }}" value="{{ $tag->id }}" 
+                    @if (in_array($tag->id, old('tags', $post->tags->pluck('id')->all()))) checked @endif>
+                    <label for="tag-{{ $tag->id }}">{{ $tag->name }}</label>
+                    @endforeach
+                </fieldset>
+
+                @error ('tags')
+                <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+
+
                 {{-- CONTENUTO --}}
                 <div class="mb-3">
                     <label for="content" class="form-label">{{__('Content')}}</label>
-                    <textarea class="form-control" id="content" placeholder="{{__('Content')}}" rows="10" name="content">{{ old('content')? old('content') : $post->content }}</textarea>
+                    <textarea class="form-control" id="content" placeholder="{{__('Content')}}" rows="10"
+                        name="content">{{ old('content')? old('content') : $post->content }}</textarea>
                 </div>
                 @error ('content')
                 <div class="alert alert-danger">{{ $message }}</div>

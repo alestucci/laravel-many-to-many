@@ -40,6 +40,7 @@
                 <th scope="col">Slug</th>
                 <th scope="col">Autore</th>
                 <th scope="col">Categoria</th>
+                <th scope="col">Tags</th>
             </tr>
         </thead>
         <tbody>
@@ -50,6 +51,7 @@
                 <td>{{ $post->slug }}</td>
                 <td>{{ $post->user_id }}</td>
                 <td>{{ $post->category_id }}</td>
+                <td>{{ $post->tags->pluck('name')->join(', ') }}</td>
                 <td>
                     @if (Auth::id() === $post->user_id)
                     <a class="btn btn-primary" href="{{ route('admin.posts.edit', $post->slug) }}">Edit</a>

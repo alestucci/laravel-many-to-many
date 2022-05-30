@@ -18,13 +18,13 @@ class PostTagSeeder extends Seeder
         foreach ($posts as $post) {
             $postTags = Tag::inRandomOrder()->limit(rand(0, 5))->get();
 
-            $arrPostTags = [];
+            // $arrPostTags = [];
 
-            foreach ($postTags as $postTag) {
-                $arrPostTags[] = $postTag->id;
-            }
+            // foreach ($postTags as $postTag) {
+            //     $arrPostTags[] = $postTag->id;
+            // }
 
-            $post->tags()->attach($postTags->pluck('id'));
+            $post->tags()->attach($postTags->pluck('id')->all());
             //$post->tags()->attach($arrPostTags);
         }
     }

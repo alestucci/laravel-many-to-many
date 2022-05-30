@@ -30,6 +30,20 @@
                 <div class="alert alert-danger">{{ $message }}</div>
                 @enderror
 
+                {{-- TAGS --}}
+                <fieldset>
+                    <legend>Tags</legend>
+                    @foreach ($tags as $tag)
+                    <input type="checkbox" name="tags[]" id="tag-{{ $tag->id }}" value="{{ $tag->id }}"
+                    @if (in_array($tag->id, old('tags', []))) checked @endif>
+                    <label for="tag-{{ $tag->id }}">{{ $tag->name }}</label>
+                    @endforeach
+                </fieldset>
+
+                @error ('tags')
+                <div class="alert alert-danger">{{ $message }}</div>
+                @enderror
+
                 {{-- CATEGORIA --}}
                 <select name="category_id" id="category_id" class="form-select mb-3">
                     <option selected>Seleziona una categoria</option>
